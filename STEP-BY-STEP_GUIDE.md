@@ -24,5 +24,10 @@ Give the image a tag that best describes your version.
 if you use a private repo, give the Flatland competition access by clicking *invite teams or people* and add the *Flatland Competition* account with *read* access.
 ![ecml-competition-package-access](docs/ecml-competition-package-access.png)
 
+> [!TIP]
+> Giving the evaluator read access to a private package might quietly turn off "inherit access from source repo", which then takes away the CI's write access so the build starts failing, and the two settings live in different panels so you need both. ([Source](https://github.com/darshanmakwana412/ecml2026/blob/main/README.md))
+
+
+
 # Navigate back to Flatland and insert the copied docker image url and submit 
 

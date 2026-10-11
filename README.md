@@ -144,6 +144,16 @@ bash submission/run_local_eval.sh checkpoints/checkpoint_500.pth
 This runs the official evaluator on the level 0 map and prints `success_rate` and `normalized_reward`. Without an
 argument it uses `submission/checkpoint.pth`.
 
+To benchmark on many scenarios (default: the 27-scenario example curriculum plus level 0), use:
+
+```bash
+bash submission/run_local_benchmark.sh [checkpoint.pth]
+# or any folder of scenario .pkl files:
+SCENARIO_DIR=path/to/pkls OUT=benchmark_custom bash submission/run_local_benchmark.sh [checkpoint.pth]
+```
+
+It prints a per-scenario table with means; episodes that crash are counted as 0.
+
 To submit, copy your best checkpoint to `submission/checkpoint.pth`, commit, and follow the
 [First Submission](#tldr-aka-first-submission) steps above.
 

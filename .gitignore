@@ -183,3 +183,5 @@ checkpoints/
 eval_out/
 training.log
 Flatland_Colab_Ready.ipynb
+benchmark_out/
+benchmark_level0/

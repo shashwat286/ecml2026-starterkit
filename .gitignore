@@ -177,3 +177,9 @@ cython_debug/
 
 /reinforcement_learning/curriculum/curriculum/
 /outputs/
+
+# Flatland MARL training outputs
+checkpoints/
+eval_out/
+training.log
+Flatland_Colab_Ready.ipynb

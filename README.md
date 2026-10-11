@@ -80,6 +80,73 @@ There is an example for a trained checkpoint with a custom observation and polic
 * checkpoint.pt
 * requirements.txt
 
+## This Solution: Flatland MARL (PPO + Rule-Based Expert)
+
+This fork's `submission/` contains a trained policy instead of the random baseline. A group of trains learns to share
+the railway network with PPO. A simple rule-based "expert" stops the agents from picking moves that obviously don't make
+sense, which makes training much faster. Training uses the challenge map and the challenge's reward function.
+
+The main pieces:
+
+- `Training.py` is the training script. It starts several environments in parallel and trains one shared network.
+- `config.py` holds the settings (number of trains, line lengths, and so on).
+- `NewAgentInitObs.py` and `shortestpath.py` build what each train "sees" at every step.
+- `expert_mask.py` is the rule-based expert that decides which moves are allowed.
+- `waypoints.py` keeps track of each train's intermediate stops.
+- `agents/models.py` defines the neural network.
+- `competition/` has the challenge map and a copy of the schedule sampler from
+  [reinforcement_learning/sampling](reinforcement_learning/sampling).
+- `submission/` has the observation builder, the policy, the trained `checkpoint.pth` and a script to run the evaluator
+  locally.
+
+The observation builder appends the expert's valid-action mask to each train's observation, and the policy picks the
+best allowed action. The `Dockerfile` copies the project modules above into the image next to `submission/`.
+
+### Training
+
+Install the dependencies (Python 3.10 or newer, Flatland 4.2.6) and start training:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install flatland-rl==4.2.6 torch numpy
+python Training.py
+```
+
+Checkpoints are saved to `checkpoints/` every 50 episodes. If you run the script again, it picks up from the latest
+checkpoint automatically.
+
+Every map in the challenge is the same 120x150 network. What changes between levels is the number of trains (8 at level
+0, up to 532 at level 6), which stations are used, how many stops each train has, and malfunctions. So each episode
+picks a random scene, line length and number of trains between `min_agents` and `max_agents` in `config.py`. Building a
+new schedule is slow, so each one is played `schedule_reuse` times. `max_agents` starts at 64; raise it step by step
+once training works at the smaller size.
+
+Each finished episode logs **Score** (normalized reward, 0 to 1), **Arrived** (share of trains that reached their
+target; evaluation stops at the first level below 25%) and **Stops** (share of intermediate stops served).
+
+Notes on rewards:
+
+- Each train gets a small shaping bonus for every cell it moves closer to its target (`SHAPING_COEF` in `Training.py`,
+  `0.0` turns it off). The logged `EpReward` is always Flatland's own reward.
+- In Flatland 4.2.6 a train going from moving to stopped is charged 250 straight away (it counts as a collision), which
+  is more than skipping an intermediate stop (50). So `serve_intermediate_stops` in `config.py` is off. Turn it on if
+  the challenge changes that penalty.
+
+To train on Colab, run `python build_colab.py` to create `Flatland_Colab_Ready.ipynb` and upload it with a GPU runtime.
+
+### Testing and submitting
+
+```bash
+bash submission/run_local_eval.sh checkpoints/checkpoint_500.pth
+```
+
+This runs the official evaluator on the level 0 map and prints `success_rate` and `normalized_reward`. Without an
+argument it uses `submission/checkpoint.pth`.
+
+To submit, copy your best checkpoint to `submission/checkpoint.pth`, commit, and follow the
+[First Submission](#tldr-aka-first-submission) steps above.
+
 ## Local Testing
 
 See [checks.yaml](.github/workflows/checks.yaml) for full details.
